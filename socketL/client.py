@@ -29,43 +29,16 @@ while True:
     data = json.loads(receive)
     if data =="your turn":
         print(data)
-        msg_input = input()
+        msg_input = input(">>")
         s.send(bytes((json.dumps(msg_input)).encode()))
         if msg_input == 'exit':
             break
     else:
         print(data)
-    # print(data.decode()) 
-    # msg_input = input()
-    # s.send(msg_input.encode())
-    # if msg_input =="exit":
-    #     break
-    
-    # data2 = s.recv(1024)
-    # # print(data2)
-    # # print(data2.decode())
-    # print(json.loads(data2))
 
 
 
 
-
-
-
-
-
-    # data = input('>>').strip()
-    # if not data:
-    #     break
-    # s.send(data.encode('utf-8'))
-    # print (s.recv(1024).decode('utf-8'))
-    # time.sleep(5)
-    # msg =s.recv(1024)
-    # if not msg:
-    #     break
-    # print(msg.decode('utf-8'))
-    # data = input('>>').strip()
-    # s.send(data.encode('utf-8'))
 
 
 

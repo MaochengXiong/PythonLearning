@@ -18,40 +18,44 @@ def getDeck(number):
 
 
 def changeCardToNum(card):
-    for i in range(len(card)):
-        if(card[i]=="J"):
-            card[i]=11
-        elif(card[i]=='Q'):
-            card[i]=12
-        elif(card[i]=='K'):
-            card[i]=13
-        elif(card[i]=='A'):
-            card[i]=14
-        elif(card[i]==2):
-            card[i]=15
-        elif(card[i]=='joker'):
-            card[i]=16
+    c = []
+    c = card.copy()
+    for i in range(len(c)):
+        if(c[i]=="J"):
+            c[i]=11
+        elif(c[i]=='Q'):
+            c[i]=12
+        elif(c[i]=='K'):
+            c[i]=13
+        elif(c[i]=='A'):
+            c[i]=14
+        elif(c[i]==2):
+            c[i]=15
+        elif(c[i]=='joker'):
+            c[i]=16
         elif(card[i]=='Joker'):
-            card[i]=17
-    return card
+            c[i]=17
+    return c
 
 def changeNumToCard(card):
+    c = []
+    c = card.copy()
     for i in range(len(card)):
-        if(card[i]==11):
-            card[i]='J'
-        elif(card[i]==12):
-            card[i]='Q'
-        elif(card[i]==13):
-            card[i]='K'
-        elif(card[i]==14):
-            card[i]='A'
-        elif(card[i]==15):
-            card[i]=2
-        elif(card[i]==16):
-            card[i]='joker'
-        elif(card[i]==17):
-            card[i]='Joker'
-    return card
+        if(c[i]==11):
+            c[i]='J'
+        elif(c[i]==12):
+            c[i]='Q'
+        elif(c[i]==13):
+            c[i]='K'
+        elif(c[i]==14):
+            c[i]='A'
+        elif(c[i]==15):
+            c[i]=2
+        elif(c[i]==16):
+            c[i]='joker'
+        elif(c[i]==17):
+            c[i]='Joker'
+    return c
 
 def isSingle(card):
     if(len(card)==1):
@@ -59,13 +63,16 @@ def isSingle(card):
     return False
 
 def isDouble(card):
-    if (card[0]==card[1]):
+    
+    if (len(card)==2 and card[0]==card[1]):
         return True
     return False
 
 def isThreeWithOne(card):
     count = 0
     count2 = 0
+    if (len(card)!=4):
+        return False
     for i in range(3):
         if(card[i]==card[3]):
             count = count+1
@@ -78,6 +85,8 @@ def isThreeWithOne(card):
 
 def isBomb(card):
     count = 0
+    if (len(card)!=4):
+        return False
     for i in range(3):
         if(card[i]==card[3]):
             count = count+1
@@ -88,6 +97,8 @@ def isBomb(card):
 def isOneCardSeq(card):
     a = changeCardToNum(card)
     temp = sorted(a)
+    if(len(a)<5):
+        return False
     for j in range(len(temp)-1):
         if(temp[j]+1!=temp[j+1]):
             return False
@@ -95,7 +106,7 @@ def isOneCardSeq(card):
 
 def isTwoCardSeq(card):
     a = changeCardToNum(card)
-    if(len(a)%2!=0):
+    if(len(a)<6 and len(a)%2!=0):
         return False
     temp = []  
     temp = sorted(a)
@@ -107,6 +118,8 @@ def isTwoCardSeq(card):
     return True
 
 def isRocket(card):
+    if(len(card)!=2):
+        return False
     a = changeCardToNum(card)
     if(a[0]+a[1]!=33):
         return False
@@ -139,5 +152,30 @@ def isLegal(card):
 
 # print(isThreeWithOne([2,2,2,4]))
 # print(getDeck(number))
+def comparison(card):
+    tempCard = []
+    tempCard = sorted(changeCardToNum(card.copy()))
+    if (isThreeWithOne(tempCard)):
+        for i in range(len(tempCard)):
+            if(tempCard[i]==tempCard[i+1]):
+                return (int)(tempCard[i])
+    elif(isBomb(tempCard)):
+        return (int)(tempCard[0]*10)
+    elif(isRocket(tempCard)):
+        return 1000000
+    else:
+        return (int)(tempCard[0])
+
+def isSame(previousCard, currentCard):
+    a = isLegal(previousCard)
+    b = isLegal(currentCard)
+    
+    if (isBomb(previousCard) or isBomb(currentCard) or isRocket(previousCard) or isRocket(currentCard)):
+        return True
+    elif(len(previousCard)==len(currentCard) and (a == b)):
+        return True
+    return False
+
+
 
     

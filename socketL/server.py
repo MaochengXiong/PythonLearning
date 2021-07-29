@@ -1,7 +1,5 @@
 import socket
-import time
 import threading
-# from threading import join
 import json
 from poker import *
 from player import *
@@ -12,6 +10,8 @@ port = 2432
 s.bind((host,port))
 s.listen(5)
 record = []
+previous = []
+passCount = 0
 
 player1 = player("player1")
 player2 = player("player2")
@@ -73,27 +73,19 @@ class MyThread(threading.Thread):
         string = "the lord is player3 and you are player"+ str(self.threadID)
         self.socket.send(bytes(json.dumps(string).encode()))
     
-         
-        # thread_array={}
-        # t=Thread(target=sendMes(self.threadID,self.socket))
-        # t.start()
-        # t.join()
-        # sleep(1)        
-
-
-# thread_array={}
-# t=Thread(target=sendMes)
-# t.start()
 
 
 def sendMsg(threadID, socket):
+    global passCount
     a = False
     isReceive = False
     while a==False:
         stringYourTurn = "your turn"
         socket.send(bytes((json.dumps(stringYourTurn)).encode()))
         data = socket.recv(1024)
-        if data == b'pass' or data ==b'':
+        # print(data)
+        if data == b'"pass"' or data ==b'""':
+            passCount=passCount+1
             if(threadID==1):
                 cardSend1 = json.dumps(card1)
             # print(cardSend1)
@@ -104,15 +96,14 @@ def sendMsg(threadID, socket):
             elif(threadID==3):
                 cardSend3 = json.dumps(card3)
                 socket.send(bytes(cardSend3.encode()))
+            if passCount == 3:
+                passCount = 0
             return
         data = json.loads(data)
 
         # print(data.decode(),"from", threadID)
         a = play(threadID,socket,data)
-        # if a == False:
-        #     word = "please re-try"
-        #     socket.send(bytes(json.dumps(word).encode()))
-        # print('threadId=' + str(threadID))
+ 
         if(threadID==1):
             cardSend1 = json.dumps(card1)
             # print(cardSend1)
@@ -127,9 +118,11 @@ def sendMsg(threadID, socket):
 
 
 def play(threadID,socket,data):  
-    # print (data)             
+    global passCount
+    # print (data) 
+    global previous            
     data = data.split(",")
-    print(data)
+    # print(data)
     # for i in range(len(data)):
     #     if data[i]==',':
     #         data.pop(i)     
@@ -162,9 +155,28 @@ def play(threadID,socket,data):
         if (count>=4):
             check = False
     print('receive:',card,"from",threadID)
+    if passCount == 2:
+        tempCard = []
+        previous = []
+        passCount = 0
+
+    if(len(previous)!=0):
+        if(not isSame(previous, card)):
+            check = False
+
+        com1 = comparison(card)
+        com2 = comparison(previous)
+        if(com1<=com2):
+            
+            check = False
+
+
+    tempCard = previous.copy()
+    previous = card.copy()
     
     if check == True:      
         res = isLegal(card)
+        # changeNumToCard(card)
         if (res == None or res =="it is illegal"):
             del record [size:]
             return False
@@ -190,8 +202,10 @@ def play(threadID,socket,data):
             c.send(bytes(json.dumps(showPlayingCards).encode()))
             c2.send(bytes(json.dumps(showPlayingCards).encode()))
             c3.send(bytes(json.dumps(showPlayingCards).encode()))
+            passCount = 0
             return True
     else:
+        previous = tempCard.copy()
         # socket.send("it is illegal，\n请重新出牌".encode('utf-8'))
         print("it is illegal")
         del record [size:]
@@ -215,149 +229,9 @@ thread3 = MyThread(3,c3)
 thread3.start()
 
 
-while (len(card1)!=0 or len(card2)!=0 or len(card3)!=0):
+while (len(card1)!=0 and len(card2)!=0 and len(card3)!=0):
             sendMsg(thread1.threadID,c)            
             sendMsg(thread2.threadID,c2)
             sendMsg(thread3.threadID,c3)  
 
-
-# socket.close()
-
-# s.listen(20)
-# while True:
-#     c,addr = s.accept()
-#     # data = c.recv
-#     print ("连接地址：", addr)
-#     string = ("欢迎访问！")
-#     st = string.encode()
-#     c.send(st)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # record = []
-
-    # while True:
-    #     data = c.recv(1024)
-        # data = data.split(",".encode('utf-8'))
-        # card = []
-
-
-        # for i in range(len(data)):
-        #     string = str(data[i],'utf-8')
-        #     # print(string)
-        #     count = 0
-        #     if (string!="A" and string!="J" and string!="Q" and string!="K" and string!="joker" and string!="Joker"):
-        #         for j in range(len(record)):
-        #             if (record[j]==int(string)):
-        #                 count = count+1
-
-        #         record.append(int(string))
-        #         card.append(int(string))
-        #     else:
-        #         for j in range(len(record)):
-        #             if (record[j]==string):
-        #                 count = count+1
-
-        #         record.append(string)
-        #         card.append(string)
-            
-        #     if (count>=4):
-        #         c.send("it is illegal".encode('utf-8'))
-        
-        # # print (card)
-        
-        # res = isLegal(card)
-        # print('receive:',data)
-        # if data == b'exit':
-        #     break
-        # # c.send()
-        # # print(res)
-        # c.send(res.encode('utf-8'))
-
-#         # reply = input("reply:").strip()
-#         # if not reply:
-#         #     break
-#         # msg = time.strftime('%Y-%m-%d %x')
-#         # msg1 = '[%s]:%s'%(msg,data)
-#         # c.send(msg1.encode('utf-8'))
-#     # c.close()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# sel = selectors.DefaultSelector()
-# # port = 2432
-
-# lsock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-# lsock.bind((host, port))
-# lsock.listen(5)
-# print("listening on",(host,port))
-# lsock.setblocking(False)
-# sel.register(lsock,selectors.EVENT_READ,data=None)
-
-# def accept_wrapper(sock):
-#     conn, addr = sock.accept()
-#     print('accepted connection from', addr)
-#     conn.setblocking(False)
-#     data = types.SimpleNamespace(addr=addr, inb=b'', outb=b'')
-#     events = selectors.EVENT_READ | selectors.EVENT_WRITE
-#     sel.register(conn,events,data = data)
-
-# def service_connection(key, mask):
-#     sock = key.fileobj
-#     data = key.data
-#     if mask & selectors.EVENT_READ:
-#         recv_data = sock.recv(1024)
-#         if recv_data:
-#             data.outb += recv_data
-#         else:
-#             print('closing connection to', data.addr)
-#             sel.unregister(sock)
-#             sock.close()
-#     if mask & selectors.EVENT_WRITE:
-#         if data.outb:
-#             print('echoing', repr(data.outb),'to',data.addr)
-#             sent = sock.send(data.outb)
-#             data.outb = data.outb[sent:]
-
-
-# while True:
-#     events = sel.select(timeout=None)
-#     for key, mask in events:
-#         if key.data is None:
-#             accept_wrapper(key.fileobj)
-#         else:
-#             service_connection(key,mask)
-
+print("end")
