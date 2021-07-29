@@ -1,6 +1,6 @@
 import socket as Socket
 from connection import Connection
-from game import Game
+from game.game import Game
 
 player_size = 3
 
@@ -10,7 +10,7 @@ server.listen(5)
 
 connections = {}
 
-game = Game()
+game = Game(player_size)
 
 for i in range(player_size):
     socket, address = server.accept()

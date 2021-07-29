@@ -1,5 +1,5 @@
 import threading
-import data
+import data as Data
 
 
 class Connection(threading.Thread):
@@ -10,14 +10,17 @@ class Connection(threading.Thread):
         self.socket = socket
         self.listener = listener
 
-        socket.send(data.json2Bytes(data.pack_text('欢迎来斗地主')))
-
-        self.reader = Reader('reader'+str(threadId), socket, listener)
+        self.reader = Reader('reader' + str(threadId), socket, listener)
         self.reader.start()
+
+        self.listener.registerPlayer(self)
 
     def run(self):
         while True:
             pass
+
+    def send(self, json):
+        self.socket.send(Data.json2Bytes(json))
 
 
 class Reader(threading.Thread):
@@ -31,5 +34,5 @@ class Reader(threading.Thread):
     def run(self):
         while True:
             receivedBytes = self.socket.recv(1024)
-            receivedJson = data.unpack(receivedBytes)
+            receivedJson = Data.unpack(receivedBytes)
             self.listener.onReceiveData(self.threadId, receivedJson)

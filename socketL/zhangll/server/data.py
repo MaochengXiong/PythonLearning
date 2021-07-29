@@ -21,5 +21,16 @@ def pack_play_cards(data):
     return __pack__(2, data)
 
 
+def pack_your_turn():
+    return __pack__(3, 'Your turn')
+
+
+def pack_play_legal():
+    return __pack__(4, 'play success')
+
+
+def pack_play_illegal():
+    return __pack__(5, 'illegal cards')
+
 def unpack(bytes):
     return json.loads(bytes)
