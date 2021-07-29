@@ -15,7 +15,7 @@ def getResult(path):
         temp = np.loadtxt(file,delimiter=',', skiprows=1,usecols=[1,2,3,5], dtype='double',encoding='gbk')
         acc = accelaration(temp[:,0],temp[:,1],temp[:,2])
         
-        fileName=os.path.split(file)[1]
+            
         res = count(acc, temp[:,3])
         res.append(type)
         res.append(fileName)
