@@ -48,7 +48,12 @@ class Game:
             self.currentOne.connection.send(Data.pack_your_turn())
             self.__waitingPlay__()
 
-            if self.__checkCards__():
+            if self.__checkPass__():
+                # 通知全员 pass
+                for c in self.connections.values():
+                    c.send(Data.pack_play_pass())
+                index += 1
+            elif self.__checkCards__():
                 self.previousCards = self.playCards
                 self.currentOne.connection.send(Data.pack_play_legal())
 
@@ -57,15 +62,20 @@ class Game:
                     c.send(Data.pack_play_cards(self.playCards['cards']))
 
                 index += 1
-                pass
             else:
                 self.currentOne.connection.send(Data.pack_play_illegal())
-                pass
             self.playCards = None
 
     def __waitingPlay__(self):
         while self.playCards is None:
             pass
+
+    def __checkPass__(self):
+        threadId = self.playCards['threadId']
+        cards = self.playCards['cards']
+        if str(threadId) == str(self.currentOne.connection.threadId):
+            return len(cards) == 0
+        return False
 
     def __checkCards__(self):
         return self.__checkContain__() and self.__checkCompare__()

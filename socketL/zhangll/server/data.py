@@ -32,5 +32,9 @@ def pack_play_legal():
 def pack_play_illegal():
     return __pack__(5, 'illegal cards')
 
+
+def pack_play_pass():
+    return __pack__(6, 'pass')
+
 def unpack(bytes):
     return json.loads(bytes)
