@@ -2,10 +2,11 @@ import random
 import data as Data
 from game.player import Player
 import time
-
+import game.poker as poker
 
 class Game:
     def __init__(self, playerSize):
+        self.previousCards = None
         self.playCards = None
         self.playerSize = playerSize
         self.__shuffle__()
@@ -13,7 +14,7 @@ class Game:
         self.players = {}
 
     def __shuffle__(self):
-        number = [2, 3, 4, 5, 6, 7, 8, 9, 10]
+        number = ['2', '3', '4', '5', '6', '7', '8', '9', '10']
         deck = []
         for i in range(4):
             for j in range(len(number)):
@@ -38,23 +39,22 @@ class Game:
             self.players[str(connection.threadId)] = Player(cards, connection)
             connection.send(Data.pack_cards_of_self(cards))
 
-        time.sleep(1)
-
         # 循环游戏 退出条件暂时留白
         index = 0
         while True:
+            time.sleep(1)
             index = index % self.playerSize
             self.currentOne = self.players[str(index)]
             self.currentOne.connection.send(Data.pack_your_turn())
             self.__waitingPlay__()
 
-            if self.__checkCards():
+            if self.__checkCards__():
+                self.previousCards = self.playCards
                 self.currentOne.connection.send(Data.pack_play_legal())
 
                 # 通知全员出牌
                 for c in self.connections.values():
                     c.send(Data.pack_play_cards(self.playCards['cards']))
-                    pass
 
                 index += 1
                 pass
@@ -67,27 +67,38 @@ class Game:
         while self.playCards is None:
             pass
 
-    def __checkCards(self):
-        # threadId = self.playCards['threadId']
-        # cards = self.playCards['cards']
-        #
-        # # 鉴权
-        # print(threadId, self.currentOne.connection.threadId)
-        # if str(threadId) == str(self.currentOne.connection.threadId):
-        #     allContain = True
-        #
-        #     cardPool = self.players[str(threadId)].cards
-        #     print(cardPool)
-        #     for card in cards:
-        #         print(card)
-        #         if card not in cardPool:
-        #             allContain = False
-        #             break
-        #
-        #     return allContain
-        #
-        # return False
-        return True
+    def __checkCards__(self):
+        return self.__checkContain__() and self.__checkCompare__()
+
+    def __checkContain__(self):
+        threadId = self.playCards['threadId']
+        cards = self.playCards['cards']
+        if str(threadId) == str(self.currentOne.connection.threadId):
+            allContain = True
+            cardPool = self.players[str(threadId)].cards
+            for card in cards:
+                print(card)
+                if card not in cardPool:
+                    allContain = False
+                    break
+
+            return allContain
+        return False
+
+    def __checkCompare__(self):
+        if self.previousCards is None:
+            return True
+
+        previousCards = self.previousCards['cards']
+        cards = self.playCards['cards']
+
+        previousValues = poker.getValuesOfCards(previousCards)
+        values = poker.getValuesOfCards(cards)
+
+        if poker.isSame(previousValues, values):
+            return poker.getPointOfValues(previousValues) < poker.getPointOfValues(values)
+        else:
+            return False
 
     def onReceiveData(self, threadId, data):
         print(threadId + ' received data: ' + str(data))
